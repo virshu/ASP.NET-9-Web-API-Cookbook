@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ProblemDetailsDemo.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
@@ -11,10 +12,27 @@ SqliteConnection connection = new("DataSource=:memory:");
 connection.Open();
 
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails(options => 
+    options.CustomizeProblemDetails = context =>
+    {
+        HttpContext httpContext = context.HttpContext;
+        context.ProblemDetails.Extensions["traceId"] = Activity.Current?.Id ?? httpContext.TraceIdentifier;
+        context.ProblemDetails.Extensions["supportContact"] = "support@rabinovich.org";
+
+        if (context.ProblemDetails.Status == StatusCodes.Status401Unauthorized)
+        {
+            context.ProblemDetails.Title = "Unauthorized Access!";
+            context.ProblemDetails.Detail = "You don't have permissions to do what you are trying to do.";
+        }
+        else
+        {
+            context.ProblemDetails.Title = "An unexpected error occurred";
+            context.ProblemDetails.Detail = "An unexpected error occurred. Please try again later.";
+        }
+    });
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContext<AppDbContext>(options => 
-    options.UseSqlite(connection));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
     
 builder.Services.AddScoped<IProductsService, ProductReadService>();
 
@@ -37,13 +55,13 @@ using (IServiceScope scope = app.Services.CreateScope())
 }
 
 app.MapControllers();
-app.MapOpenApi();
 
+app.MapOpenApi();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/openapi/v1.json", "v1");
+        options.SwaggerEndpoint("/openapi/v1.json", "2.0");
     });
 }
 

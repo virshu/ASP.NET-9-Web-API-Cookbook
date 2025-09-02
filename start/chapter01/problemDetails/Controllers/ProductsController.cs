@@ -35,7 +35,11 @@ public class ProductsController(IProductsService productsService, ILogger<Produc
         }
 
     // GET: /Products/1
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductDTO))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized, Type = typeof(ProblemDetails))]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(ProblemDetails))]
     public async Task<ActionResult<ProductDTO>> GetAProduct(int id)
     {
         logger.LogInformation("Retrieving product with id {ID}", id);
@@ -45,14 +49,36 @@ public class ProductsController(IProductsService productsService, ILogger<Produc
             ProductDTO? product = await productsService.GetAProductAsync(id);
 
             if (product == null)
-                return NotFound();
+            {
+                return Problem(
+                    detail: $"Product with ID {id} was not found.",
+                    title: "Product not found",
+                    statusCode: StatusCodes.Status404NotFound,
+                    instance: HttpContext.TraceIdentifier
+                );
+            }
 
             return Ok(product);
         } 
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogError(ex, "Unauthorized access");
+            return Problem(
+                detail: ex.Message,
+                title: "Unauthorized Access",
+                statusCode: StatusCodes.Status401Unauthorized,
+                instance: HttpContext.TraceIdentifier
+            );
+        }
         catch (Exception ex) 
         {
             logger.LogError(ex, "An error occurred while retrieving product with id {ID}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return Problem(
+                detail: "An unexpected error occurred while processing your request.",
+                title: "Internal Server Error",
+                statusCode: StatusCodes.Status500InternalServerError,
+                instance: HttpContext.TraceIdentifier
+            );
         }
     }
 }
