@@ -1,0 +1,7 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/start/chapter01/MockAPI/bin
+/start/chapter01/MockAPI/obj
+/start/chapter01/MockAPI/.vs
