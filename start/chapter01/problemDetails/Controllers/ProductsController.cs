@@ -20,7 +20,7 @@ public class ProductsController(IProductsService productsService, ILogger<Produc
 
             try 
             {
-                var products = await productsService.GetAllProductsAsync();
+                IEnumerable<ProductDTO> products = await productsService.GetAllProductsAsync();
 
                 if (!products.Any())
                     return NoContent();
@@ -38,11 +38,11 @@ public class ProductsController(IProductsService productsService, ILogger<Produc
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductDTO>> GetAProduct(int id)
     {
-        logger.LogInformation($"Retrieving product with id {id}");
+        logger.LogInformation("Retrieving product with id {ID}", id);
 
         try 
         {
-            var product = await productsService.GetAProductAsync(id);
+            ProductDTO? product = await productsService.GetAProductAsync(id);
 
             if (product == null)
                 return NotFound();
@@ -51,7 +51,7 @@ public class ProductsController(IProductsService productsService, ILogger<Produc
         } 
         catch (Exception ex) 
         {
-            logger.LogError(ex, $"An error occurred while retrieving product with id {id}");
+            logger.LogError(ex, "An error occurred while retrieving product with id {ID}", id);
             return StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
