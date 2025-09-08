@@ -48,12 +48,6 @@ public class ProductsController(IProductsService productsService, ILogger<Produc
         }
 
         PagedProductResponseDTO pagedResult = await productsService.GetPagedProductsAsync(pageSize, lastProductId);
-        string? previousPageUrl = pagedResult.HasPreviousPage
-            ? Url.Action("GetProducts", new { pageSize,
-                lastProductId = pagedResult.Items.First().Id }) : null;
-        string? nextPageUrl = pagedResult.HasNextPage
-            ? Url.Action("GetProducts", new { pageSize,
-                lastProductId = pagedResult.Items.Last().Id }) : null;
         var paginationMetadata = new
         {
             pagedResult.PageSize,
