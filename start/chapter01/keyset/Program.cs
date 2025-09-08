@@ -7,7 +7,7 @@ using cookbook.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-SqliteConnection connection = new SqliteConnection("DataSource=:memory:");
+SqliteConnection connection = new("DataSource=:memory:");
 connection.Open();
 
 builder.Services.AddControllers();
@@ -16,6 +16,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(connection));
     
 builder.Services.AddScoped<IProductsService, ProductReadService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .WithExposedHeaders("X-Pagination");
+    });
+});
 
 WebApplication app = builder.Build();
 
@@ -36,6 +47,7 @@ using (IServiceScope scope = app.Services.CreateScope())
     }
 }
 
+app.UseCors();
 app.MapControllers();
 app.MapOpenApi();
 
