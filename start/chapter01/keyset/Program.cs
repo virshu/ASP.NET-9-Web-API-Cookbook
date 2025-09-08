@@ -27,6 +27,7 @@ builder.Services.AddCors(options =>
               .WithExposedHeaders("X-Pagination");
     });
 });
+builder.Services.AddMemoryCache();
 
 WebApplication app = builder.Build();
 

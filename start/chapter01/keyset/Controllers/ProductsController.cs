@@ -59,8 +59,14 @@ public class ProductsController(IProductsService productsService, ILogger<Produc
             pagedResult.PageSize,
             pagedResult.HasPreviousPage,
             pagedResult.HasNextPage,
-            PreviousPageUrl = previousPageUrl,
-            NextPageUrl = nextPageUrl
+            pagedResult.TotalPages,
+            PreviousPageUrl = pagedResult.HasPreviousPage
+                ? Url.Action("GetProducts", new { pageSize, lastProductId = pagedResult.Items.First().Id }) : null,
+            NextPageUrl = pagedResult.HasNextPage
+                ? Url.Action("GetProducts", new { pageSize, lastProductId = pagedResult.Items.Last().Id }) : null,
+            FirstPageUrl = Url.Action("GetProducts", new { pageSize }),
+            LastPageUrl = Url.Action("GetProducts",
+                new { pageSize, lastProductId = (pagedResult.TotalPages - 1) * pageSize })
         };
 
         JsonSerializerOptions options = new()
